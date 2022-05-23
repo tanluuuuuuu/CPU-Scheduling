@@ -2,6 +2,7 @@
 #include <iostream>
 #include <algorithm>
 #include <vector>
+#include <map>
 
 using namespace std;
 
@@ -15,6 +16,7 @@ struct process
 void swap(process&, process&);
 void sort(vector<process>& processes, int);
 void SJF(const vector<process>& processes, int);
+bool compareFunction(process, process);
 
 int main()
 {
@@ -66,20 +68,57 @@ void sort(vector<process>& processes, int n)
 	}
 }
 
+bool compareFunction(process a , process b) {
+	return a.burst_time > b.burst_time;
+}
+
 void SJF(const vector<process>& processes, int n)
 {
 	// Khoi tao cac gia tri
-	int start_time[n], finish_time[n], tat[n], wt[n];
-	int thoidiem = processes[0].arrival_time;
-	int sum_wt = 0, sum_tat = 0;
+	map<int, int> mapp;
 	for (int i = 0; i < n; i++)
 	{
-		start_time[i] = (processes[i].arrival_time > thoidiem) ? processes[i].arrival_time : thoidiem;
-		finish_time[i] = start_time[i] + processes[i].burst_time;
-		tat[i] = finish_time[i] - processes[i].arrival_time;
-		wt[i] = start_time[i] - processes[i].arrival_time;
-		
-		thoidiem = finish_time[i];
+		mapp[p[i].ID] = i;
+	}
+
+	int star[n], finish[n], tat[n], wat[n];
+	vector<process> temp;
+	int j = 0;
+	int sum_wt = 0, sum_tat = 0;
+	int thoidiem = 0;
+	for (int i = 0; i < n; i++)
+	{
+		if (i == 0)
+		{
+			star[i] = p[i].arrival_time;
+			wat[i] = star[i] - p[i].arrival_time;
+			finish[i] = star[i] + p[i].burst_time;
+			tat[i] = finish[i] - p[i].arrival_time;
+			thoidiem = finish[i];
+			j++;
+			while (j < n && p[j].arrival_time <= thoidiem)
+			{
+				temp.push_back(p[j++]);
+			}
+			sort(temp.begin(), temp.end(), compareFunction);
+		}
+		else
+		{
+			process pp = temp.back();
+			temp.pop_back();
+
+			star[ mapp[pp.ID] ] = thoidiem;
+			wat[mapp[pp.ID]] = star[mapp[pp.ID]] - pp.arrival_time;
+			finish[mapp[pp.ID]] = star[mapp[pp.ID]] + pp.burst_time;
+			tat[mapp[pp.ID]] = finish[mapp[pp.ID]] - pp.arrival_time;
+
+			thoidiem = thoidiem + pp.burst_time;
+			while (j < n && p[j].arrival_time <= thoidiem)
+			{
+				temp.push_back(p[j++]);
+			}
+			sort(temp.begin(), temp.end(), compareFunction);
+		}
 	}
 	
 	printf("\nName\tArrTime\tBurtime\tStart\tTAT\tFinish");
